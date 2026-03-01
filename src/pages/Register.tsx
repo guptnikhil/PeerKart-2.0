@@ -3,12 +3,14 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/peerkart-logo.png";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { MessageSquare } from "lucide-react";
 
 const Register = () => {
   const { user, loading } = useAuth();
@@ -20,6 +22,7 @@ const Register = () => {
   const [fullName, setFullName] = useState("");
   const [collegeName, setCollegeName] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [whatsappEnabled, setWhatsappEnabled] = useState(true);
 
   useEffect(() => {
     if (user && !loading) {
@@ -39,6 +42,7 @@ const Register = () => {
           full_name: fullName,
           college_name: collegeName,
           whatsapp_number: whatsappNumber,
+          whatsapp_enabled: whatsappEnabled,
         },
       },
     });
@@ -100,6 +104,21 @@ const Register = () => {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-border p-4 bg-muted/30">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-bold">WhatsApp Permission</Label>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Allow buyers to chat with you on WhatsApp</p>
+              </div>
+              <Switch 
+                checked={whatsappEnabled}
+                onCheckedChange={setWhatsappEnabled}
+              />
+            </div>
+
             <Button type="submit" variant="hero" className="w-full" size="lg" disabled={isSubmitting}>
               {isSubmitting ? "Creating Account..." : "Create Account"}
             </Button>

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { Navbar } from "@/components/layout/Navbar";
@@ -32,6 +32,7 @@ const features = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const [recentListings, setRecentListings] = useState([]);
   const [loadingRecent, setLoadingRecent] = useState(true);
   const [errorInfo, setErrorInfo] = useState<string | null>(null);
@@ -92,16 +93,16 @@ const Index = () => {
               verified, safe, and right on your campus.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 animate-fade-in sm:flex-row sm:justify-center" style={{ animationDelay: "0.3s" }}>
-              <Link to="/browse">
-                <Button variant="hero" size="xl">
+              <Button asChild variant="hero" size="xl">
+                <Link to="/browse">
                   Browse Listings <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link to="/sell">
-                <Button variant="hero-outline" size="xl">
+                </Link>
+              </Button>
+              <Button asChild variant="hero-outline" size="xl">
+                <Link to="/sell">
                   Sell an Item
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -156,11 +157,9 @@ const Index = () => {
               </h2>
               <p className="mt-2 text-muted-foreground">Latest items from verified students.</p>
             </div>
-            <Link to="/browse" className="hidden sm:block">
-              <Button variant="outline" size="sm">
-                View all <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
+            <Button variant="outline" size="sm" onClick={() => navigate("/browse")}>
+              View all <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
           {errorInfo === "DATABASE_MISSING_TABLES" ? (
             <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-12 text-center mt-8">
@@ -190,30 +189,7 @@ const Index = () => {
             </div>
           )}
           <div className="mt-8 text-center sm:hidden">
-            <Link to="/browse">
-              <Button variant="outline">View all listings</Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="gradient-hero overflow-hidden rounded-2xl p-8 text-center md:p-16">
-            <h2 className="font-display text-3xl font-bold text-primary-foreground md:text-4xl">
-              Ready to start selling?
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-primary-foreground/70">
-              Join thousands of students already saving money on campus.
-            </p>
-            <div className="mt-6">
-              <Link to="/register">
-                <Button variant="hero" size="xl">
-                  Get Started Free <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+            <Button variant="outline" onClick={() => navigate("/browse")}>View all listings</Button>
           </div>
         </div>
       </section>

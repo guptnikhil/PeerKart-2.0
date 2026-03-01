@@ -1,10 +1,13 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, UserCircle } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, UserCircle, Bell, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
 import logo from "@/assets/peerkart-logo.png";
 import { useAuth } from "@/context/AuthContext";
 import { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import { getProxyUrl } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const navLinks = [
   { label: "Browse", path: "/browse" },
@@ -14,8 +17,59 @@ const navLinks = [
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      fetchUnreadCount();
+      
+      // Subscribe to new messages for notifications
+      const messageSubscription = supabase
+        .channel('navbar_notifications')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages' },
+          () => fetchUnreadCount()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(messageSubscription);
+      };
+    } else {
+      setProfile(null);
+      setUnreadCount(0);
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("avatar_url, full_name")
+      .eq("id", user?.id)
+      .maybeSingle();
+    setProfile(data);
+  };
+
+  const fetchUnreadCount = async () => {
+    if (!user) return;
+    
+    // Count unread messages where user is not the sender
+    const { count, error } = await supabase
+      .from("messages")
+      .select("*", { count: 'exact', head: true })
+      .eq("is_read", false)
+      .neq("sender_id", user.id);
+
+    if (!error) {
+      setUnreadCount(count || 0);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -35,51 +89,83 @@ export function Navbar() {
         {/* Desktop nav */}
         <div className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => (
-            <Link key={link.path} to={link.path}>
-              <Button
-                variant={location.pathname === link.path ? "default" : "ghost"}
-                size="sm"
-              >
+            <Button
+              key={link.path}
+              asChild
+              variant={location.pathname === link.path ? "default" : "ghost"}
+              size="sm"
+            >
+              <Link to={link.path}>
                 {link.label}
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           ))}
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
           {user ? (
             <>
-              <Link to="/profile">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                  <UserCircle className="h-4 w-4" />
-                  {user.email}
-                </Button>
-              </Link>
+              <Button asChild variant="ghost" size="icon" className="relative mr-1" onClick={() => navigate("/messages")}>
+                <Link to="/messages">
+                  <Bell className="h-5 w-5 text-muted-foreground" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-2 w-2 items-center justify-center rounded-full bg-destructive animate-pulse">
+                    </span>
+                  )}
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm" className="flex items-center gap-2 pr-2">
+                <Link to="/profile">
+                  <div className="flex items-center gap-2">
+                    {profile?.avatar_url ? (
+                      <img src={getProxyUrl(profile.avatar_url)} alt="Avatar" className="h-8 w-8 rounded-full object-cover" />
+                    ) : (
+                      <UserCircle className="h-5 w-5" />
+                    )}
+                    <span className="max-w-[120px] truncate">
+                      {profile?.full_name || user.email}
+                    </span>
+                  </div>
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 Log out
               </Button>
             </>
           ) : (
             <>
-              <Link to="/login">
-                <Button variant="ghost" size="sm">Log in</Button>
-              </Link>
-              <Link to="/register">
-                <Button variant="hero" size="sm">Sign up</Button>
-              </Link>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/login">Log in</Link>
+              </Button>
+              <Button asChild variant="hero" size="sm">
+                <Link to="/register">Sign up</Link>
+              </Button>
             </>
           )}
         </div>
 
         {/* Mobile menu toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-        >
-          {mobileOpen ? <X /> : <Menu />}
-        </Button>
+        <div className="flex items-center gap-2 md:hidden">
+          {user && (
+            <Button asChild variant="ghost" size="icon" className="relative mr-1" onClick={() => navigate("/messages")}>
+              <Link to="/messages">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-2 w-2 items-center justify-center rounded-full bg-destructive animate-pulse">
+                  </span>
+                )}
+              </Link>
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-lg"
+            onClick={() => setMobileOpen(!mobileOpen)}
+          >
+            {mobileOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -87,35 +173,63 @@ export function Navbar() {
         <div className="border-t border-border bg-background px-4 pb-4 md:hidden animate-fade-in">
           <div className="flex flex-col gap-1 pt-2">
             {navLinks.map((link) => (
-              <Link key={link.path} to={link.path} onClick={() => setMobileOpen(false)}>
-                <Button
-                  variant={location.pathname === link.path ? "default" : "ghost"}
-                  className="w-full justify-start"
-                >
-                  {link.label}
-                </Button>
-              </Link>
+              <Button
+                key={link.path}
+                variant={location.pathname === link.path ? "default" : "ghost"}
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate(link.path);
+                  setMobileOpen(false);
+                }}
+              >
+                {link.label}
+              </Button>
             ))}
             {user ? (
               <>
-                <Link to="/profile" onClick={() => setMobileOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start flex items-center gap-2">
-                    <UserCircle className="h-4 w-4" />
-                    {user.email}
-                  </Button>
-                </Link>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start flex items-center gap-2"
+                  onClick={() => {
+                    navigate("/profile");
+                    setMobileOpen(false);
+                  }}
+                >
+                  {profile?.avatar_url ? (
+                    <img src={getProxyUrl(profile.avatar_url)} alt="Avatar" className="h-8 w-8 rounded-full object-cover" />
+                  ) : (
+                    <UserCircle className="h-5 w-5" />
+                  )}
+                  <span className="truncate">
+                    {profile?.full_name || user.email}
+                  </span>
+                </Button>
                 <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
                   Log out
                 </Button>
               </>
             ) : (
               <div className="mt-2 flex gap-2">
-                <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
-                  <Button variant="outline" className="w-full">Log in</Button>
-                </Link>
-                <Link to="/register" className="flex-1" onClick={() => setMobileOpen(false)}>
-                  <Button variant="hero" className="w-full">Sign up</Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    navigate("/login");
+                    setMobileOpen(false);
+                  }}
+                >
+                  Log in
+                </Button>
+                <Button 
+                  variant="hero" 
+                  className="flex-1"
+                  onClick={() => {
+                    navigate("/register");
+                    setMobileOpen(false);
+                  }}
+                >
+                  Sign up
+                </Button>
               </div>
             )}
           </div>

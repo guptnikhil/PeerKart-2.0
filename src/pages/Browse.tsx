@@ -33,8 +33,7 @@ const Browse = () => {
           full_name,
           college_name
         )
-      `)
-      .eq("status", "approved"); // Only fetch approved listings
+      `); // Temporarily removed status filter to see if any items exist
 
     if (error) {
       console.error("Error fetching listings:", error);
@@ -50,7 +49,9 @@ const Browse = () => {
   };
 
   const filtered = listings.filter((l: any) => {
-    const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase()) || l.description.toLowerCase().includes(search.toLowerCase());
+    const title = l.title || "";
+    const description = l.description || "";
+    const matchesSearch = title.toLowerCase().includes(search.toLowerCase()) || description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory === "all" || l.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });

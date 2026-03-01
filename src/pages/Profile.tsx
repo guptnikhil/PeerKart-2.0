@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Star, GraduationCap, CreditCard, Camera } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ShieldCheck, Star, GraduationCap, CreditCard, Camera, MessageSquare } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +17,7 @@ interface ProfileData {
   college_name: string | null;
   whatsapp_number: string | null;
   avatar_url: string | null;
+  whatsapp_enabled: boolean;
 }
 
 const Profile = () => {
@@ -31,6 +33,7 @@ const Profile = () => {
   const [fullName, setFullName] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [collegeName, setCollegeName] = useState("");
+  const [whatsappEnabled, setWhatsappEnabled] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -49,7 +52,7 @@ const Profile = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("full_name, college_name, whatsapp_number, avatar_url")
+        .select("full_name, college_name, whatsapp_number, avatar_url, whatsapp_enabled")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -60,6 +63,7 @@ const Profile = () => {
         setFullName(data.full_name || "");
         setWhatsappNumber(data.whatsapp_number || "");
         setCollegeName(data.college_name || "");
+        setWhatsappEnabled(data.whatsapp_enabled !== false);
         if (data.avatar_url) {
           setAvatarPreviewUrl(data.avatar_url);
         }
@@ -132,6 +136,7 @@ const Profile = () => {
         whatsapp_number: whatsappNumber,
         college_name: collegeName,
         avatar_url: newAvatarUrl,
+        whatsapp_enabled: whatsappEnabled,
       });
 
     if (error) {
@@ -254,6 +259,21 @@ const Profile = () => {
                 required
               />
             </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-border p-4 bg-muted/30">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-bold">WhatsApp Permission</Label>
+                </div>
+                <p className="text-[11px] text-muted-foreground">Allow buyers to chat with you on WhatsApp</p>
+              </div>
+              <Switch 
+                checked={whatsappEnabled}
+                onCheckedChange={setWhatsappEnabled}
+              />
+            </div>
+
             <Button type="submit" size="lg" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save Changes"}
             </Button>
