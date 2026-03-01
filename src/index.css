@@ -34,13 +34,22 @@
 
     --radius: 0.75rem;
 
+    --pk-navy: 221 83% 53%;
+    --pk-blue-deep: 221 83% 43%;
+    --pk-blue: 221 83% 53%;
+    --pk-blue-light: 221 83% 63%;
+    --pk-blue-pale: 221 83% 93%;
+    --pk-green: 142 71% 45%;
+    --pk-green-light: 142 71% 55%;
+    --pk-green-pale: 142 71% 95%;
+
     --gradient-hero: linear-gradient(135deg, #004aad 0%, #001e3c 100%);
-    --gradient-cta: linear-gradient(135deg, #00d084 0%, #00a86b 100%);
+    --gradient-cta: linear-gradient(135deg, #00df82 0%, #00b074 100%);
     --gradient-card: linear-gradient(to bottom right, #ffffff, #f9fafb);
     
     --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     --shadow-card-hover: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
-    --shadow-cta: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+    --shadow-cta: 0 10px 15px -3px rgba(0, 223, 130, 0.3);
   }
 
   .dark {
