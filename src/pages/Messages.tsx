@@ -52,6 +52,19 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Handle viewport height for mobile browsers
+  useEffect(() => {
+    const setVHToken = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    
+    setVHToken();
+    window.addEventListener('resize', setVHToken);
+    return () => window.removeEventListener('resize', setVHToken);
+  }, []);
 
   const fetchRooms = async () => {
     if (!user) return;
@@ -233,11 +246,14 @@ const Messages = () => {
   ];
 
   return (
-    <div className="flex h-screen w-screen bg-[#f0f2f5] overflow-hidden fixed inset-0 z-[100]">
+    <div 
+      className="flex w-screen bg-[#f0f2f5] overflow-hidden fixed inset-0 z-[100]"
+      style={{ height: 'calc(var(--vh, 1vh) * 100)' }}
+    >
       
       {/* Sidebar */}
       <div className={cn(
-        "flex flex-col w-full md:w-[30%] lg:w-[450px] border-r border-[#e9edef] bg-white transition-all shrink-0",
+        "flex flex-col w-full md:w-[30%] lg:w-[450px] border-r border-[#e9edef] bg-white transition-all shrink-0 h-full",
         activeRoomId ? "hidden md:flex" : "flex"
       )}>
         {/* User Profile Header */}
@@ -331,7 +347,7 @@ const Messages = () => {
 
       {/* Main Chat Window */}
       <div className={cn(
-        "flex-1 flex flex-col relative transition-all",
+        "flex-1 flex flex-col relative transition-all overflow-hidden h-full",
         !activeRoomId ? "hidden md:flex bg-[#f8f9fa]" : "flex bg-[#efeae2]"
       )}>
         {/* Background Doodle Overlay */}
@@ -366,7 +382,7 @@ const Messages = () => {
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 z-10 relative">
+            <ScrollArea className="flex-1 z-10 relative overflow-y-auto">
                <div className="flex flex-col min-h-full px-4 py-6 lg:px-20 gap-2">
                 {messages.map((msg, index) => {
                   const isMe = msg.sender_id === user?.id;
@@ -416,15 +432,21 @@ const Messages = () => {
             </ScrollArea>
 
             {/* Input Bar */}
-            <div className="bg-[#f0f2f5] p-2.5 flex items-center gap-2 z-10 shrink-0">
+            <div className="bg-[#f0f2f5] p-2.5 flex items-center gap-2 z-10 shrink-0 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
               <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-2">
                 <div className="flex-1 bg-white rounded-lg px-4 py-2.5 shadow-sm ml-2">
                   <input
+                    ref={inputRef}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onFocus={() => {
+                      // Smooth scroll to bottom when keyboard opens
+                      setTimeout(() => {
+                        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+                      }, 300);
+                    }}
                     placeholder="Type a message"
-                    className="w-full bg-transparent border-none outline-none text-[15px] placeholder:text-[#54656f]"
-                    autoFocus
+                    className="w-full bg-transparent border-none outline-none text-[16px] placeholder:text-[#54656f]"
                   />
                 </div>
                 <Button 
@@ -442,7 +464,7 @@ const Messages = () => {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center flex-1 text-center p-8 bg-[#f8f9fa] z-10 relative">
+          <div className="flex flex-col items-center justify-center flex-1 text-center p-8 bg-[#f8f9fa] z-10 relative h-full">
             <Button variant="ghost" onClick={() => navigate("/dashboard")} className="absolute top-4 left-4 rounded-full flex items-center gap-2 text-[#54656f]">
               <ArrowLeft className="h-5 w-5" /> Exit to PeerKart
             </Button>
