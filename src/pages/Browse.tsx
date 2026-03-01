@@ -1,24 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { sampleListings } from "@/data/sampleListings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORY_LABELS, type ListingCategory } from "@/types";
 import { Search } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const categories: (ListingCategory | "all")[] = ["all", "textbooks", "electronics", "furniture", "clothing", "stationery", "sports", "other"];
 
 const Browse = () => {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<ListingCategory | "all">("all");
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = sampleListings.filter((l) => {
+  const [errorInfo, setErrorInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchListings();
+  }, []);
+
+  const fetchListings = async () => {
+    setLoading(true);
+    setErrorInfo(null);
+    const { data, error } = await supabase
+      .from("items")
+      .select(`
+        *,
+        profiles (
+          full_name,
+          college_name
+        )
+      `)
+      .eq("status", "approved"); // Only fetch approved listings
+
+    if (error) {
+      console.error("Error fetching listings:", error);
+      if (error.code === '42P01') {
+        setErrorInfo("DATABASE_MISSING_TABLES");
+      } else {
+        setErrorInfo(error.message);
+      }
+    } else {
+      setListings(data || []);
+    }
+    setLoading(false);
+  };
+
+  const filtered = listings.filter((l: any) => {
     const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase()) || l.description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = selectedCategory === "all" || l.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 text-center">
+          <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">Browse Listings</h1>
+          <p className="mt-2 text-muted-foreground">Loading listings...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,7 +106,19 @@ const Browse = () => {
         </div>
 
         {/* Results */}
-        {filtered.length > 0 ? (
+        {errorInfo === "DATABASE_MISSING_TABLES" ? (
+          <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-12 text-center mt-8">
+            <h3 className="font-display text-xl font-bold text-destructive">Database Schema Missing!</h3>
+            <p className="mt-2 text-muted-foreground">
+              Please go to your Supabase Dashboard SQL Editor and run the SQL code provided by the assistant.
+            </p>
+          </div>
+        ) : errorInfo ? (
+          <div className="rounded-xl border border-yellow-500/50 bg-yellow-500/10 p-12 text-center mt-8">
+            <h3 className="font-display text-xl font-bold text-yellow-600">Connection Issue</h3>
+            <p className="mt-2 text-muted-foreground">{errorInfo}</p>
+          </div>
+        ) : filtered.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((listing) => (
               <ListingCard key={listing.id} listing={listing} />

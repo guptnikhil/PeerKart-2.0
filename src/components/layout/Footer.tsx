@@ -18,19 +18,12 @@ export function Footer() {
             </p>
           </div>
 
-          <div>
-            <h4 className="mb-3 font-display text-sm font-semibold text-foreground">Platform</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/browse" className="hover:text-primary transition-colors">Browse Listings</Link></li>
-              <li><Link to="/sell" className="hover:text-primary transition-colors">Sell an Item</Link></li>
-              <li><Link to="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link></li>
-            </ul>
-          </div>
+          {/* Removed Platform Section */}
 
           <div>
             <h4 className="mb-3 font-display text-sm font-semibold text-foreground">Support</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
+              <li><a href="https://wa.me/7388748271?text=Hello%20PeerKart%20Support%2C%20I%20need%20help%20with..." target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Help Center</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Safety Tips</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Report an Issue</a></li>
             </ul>

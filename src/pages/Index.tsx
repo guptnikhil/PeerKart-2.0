@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { sampleListings } from "@/data/sampleListings";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ShieldCheck, Users, Zap, GraduationCap, ArrowRight } from "lucide-react";
 import logo from "@/assets/peerkart-logo.png";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 const features = [
   {
@@ -31,6 +32,43 @@ const features = [
 ];
 
 const Index = () => {
+  const [recentListings, setRecentListings] = useState([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+  const [errorInfo, setErrorInfo] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchRecentListings();
+  }, []);
+
+  const fetchRecentListings = async () => {
+    setLoadingRecent(true);
+    setErrorInfo(null);
+    const { data, error } = await supabase
+      .from("items")
+      .select(`
+        *,
+        profiles (
+          full_name,
+          college_name
+        )
+      `)
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    if (error) {
+      console.error("Error fetching recent listings:", error);
+      if (error.code === '42P01') {
+        setErrorInfo("DATABASE_MISSING_TABLES");
+      } else {
+        setErrorInfo(error.message);
+      }
+    } else {
+      console.log("Fetched items successfully:", data); // DEBUG LOG
+      setRecentListings(data || []);
+    }
+    setLoadingRecent(false);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -124,11 +162,33 @@ const Index = () => {
               </Button>
             </Link>
           </div>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {sampleListings.slice(0, 3).map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          {errorInfo === "DATABASE_MISSING_TABLES" ? (
+            <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-12 text-center mt-8">
+              <h3 className="font-display text-xl font-bold text-destructive">Database Schema Missing!</h3>
+              <p className="mt-2 text-muted-foreground">
+                Please go to your Supabase Dashboard SQL Editor and run the SQL code provided by the assistant.
+              </p>
+            </div>
+          ) : errorInfo ? (
+            <div className="rounded-xl border border-yellow-500/50 bg-yellow-500/10 p-12 text-center mt-8">
+              <h3 className="font-display text-xl font-bold text-yellow-600">Connection Issue</h3>
+              <p className="mt-2 text-muted-foreground">{errorInfo}</p>
+            </div>
+          ) : loadingRecent ? (
+            <div className="py-20 text-center">
+              <p className="text-lg text-muted-foreground animate-pulse">Loading recent listings...</p>
+            </div>
+          ) : recentListings.length > 0 ? (
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {recentListings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center">
+              <p className="text-lg text-muted-foreground">No recent listings found.</p>
+            </div>
+          )}
           <div className="mt-8 text-center sm:hidden">
             <Link to="/browse">
               <Button variant="outline">View all listings</Button>

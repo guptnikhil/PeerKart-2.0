@@ -1,8 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, UserCircle } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/peerkart-logo.png";
+import { useAuth } from "@/context/AuthContext";
+import { User } from "@supabase/supabase-js";
 
 const navLinks = [
   { label: "Browse", path: "/browse" },
@@ -13,6 +15,12 @@ const navLinks = [
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileOpen(false); // Close mobile menu on logout
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
@@ -39,12 +47,28 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-2 md:flex">
-          <Link to="/login">
-            <Button variant="ghost" size="sm">Log in</Button>
-          </Link>
-          <Link to="/register">
-            <Button variant="hero" size="sm">Sign up</Button>
-          </Link>
+          {user ? (
+            <>
+              <Link to="/profile">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <UserCircle className="h-4 w-4" />
+                  {user.email}
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm">Log in</Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="hero" size="sm">Sign up</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile menu toggle */}
@@ -72,14 +96,28 @@ export function Navbar() {
                 </Button>
               </Link>
             ))}
-            <div className="mt-2 flex gap-2">
-              <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
-                <Button variant="outline" className="w-full">Log in</Button>
-              </Link>
-              <Link to="/register" className="flex-1" onClick={() => setMobileOpen(false)}>
-                <Button variant="hero" className="w-full">Sign up</Button>
-              </Link>
-            </div>
+            {user ? (
+              <>
+                <Link to="/profile" onClick={() => setMobileOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start flex items-center gap-2">
+                    <UserCircle className="h-4 w-4" />
+                    {user.email}
+                  </Button>
+                </Link>
+                <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <div className="mt-2 flex gap-2">
+                <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
+                  <Button variant="outline" className="w-full">Log in</Button>
+                </Link>
+                <Link to="/register" className="flex-1" onClick={() => setMobileOpen(false)}>
+                  <Button variant="hero" className="w-full">Sign up</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

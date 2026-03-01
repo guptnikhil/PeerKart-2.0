@@ -1,19 +1,45 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { sampleListings } from "@/data/sampleListings";
 import { Badge } from "@/components/ui/badge";
 import { Package, CreditCard, Star, TrendingUp } from "lucide-react";
-
-const stats = [
-  { icon: Package, label: "Active Listings", value: "3" },
-  { icon: CreditCard, label: "Credits", value: "50" },
-  { icon: Star, label: "Trust Score", value: "92" },
-  { icon: TrendingUp, label: "Total Views", value: "128" },
-];
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 const Dashboard = () => {
-  const userListings = sampleListings.slice(0, 3);
+  const { user } = useAuth();
+  const [userListings, setUserListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserListings();
+    }
+  }, [user]);
+
+  const fetchUserListings = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("items")
+      .select("*")
+      .eq("user_id", user?.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching user listings:", error);
+    } else {
+      setUserListings(data || []);
+    }
+    setLoading(false);
+  };
+
+  const stats = [
+    { icon: Package, label: "Active Listings", value: userListings.length.toString() },
+    { icon: CreditCard, label: "Credits", value: "50" }, // Demo value
+    { icon: Star, label: "Trust Score", value: "92" }, // Demo value
+    { icon: TrendingUp, label: "Total Views", value: "0" }, // Demo value
+  ];
 
   return (
     <div className="min-h-screen bg-background">
