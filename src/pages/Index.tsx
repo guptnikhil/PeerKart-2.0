@@ -82,23 +82,23 @@ const Index = () => {
             <div className="mb-6 inline-flex animate-fade-in">
               <img src={logo} alt="PeerKart" className="h-20 w-20 rounded-2xl shadow-lg animate-float" />
             </div>
-            <h1 className="animate-fade-in font-display text-4xl font-bold tracking-tight text-primary-foreground md:text-6xl lg:text-7xl">
-              Peer<span className="text-pk-green-light">Kart</span>
+            <h1 className="animate-fade-in font-display text-4xl font-bold tracking-tight text-white md:text-6xl lg:text-7xl">
+              Peer<span className="text-[#00d084]">Kart</span>
             </h1>
-            <p className="mt-4 animate-fade-in font-display text-lg text-primary-foreground/80 md:text-xl" style={{ animationDelay: "0.1s" }}>
+            <p className="mt-4 animate-fade-in font-display text-lg text-white/90 md:text-xl" style={{ animationDelay: "0.1s" }}>
               Built by Students. Trusted by Students.
             </p>
-            <p className="mx-auto mt-3 max-w-lg animate-fade-in text-sm text-primary-foreground/60 md:text-base" style={{ animationDelay: "0.2s" }}>
+            <p className="mx-auto mt-3 max-w-lg animate-fade-in text-sm text-white/70 md:text-base" style={{ animationDelay: "0.2s" }}>
               The college-exclusive marketplace where students buy, sell, and save — 
               verified, safe, and right on your campus.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 animate-fade-in sm:flex-row sm:justify-center" style={{ animationDelay: "0.3s" }}>
-              <Button asChild variant="hero" size="xl">
+              <Button asChild variant="hero" size="xl" className="bg-[#00d084] hover:bg-[#00b074] text-white border-none min-w-[200px]">
                 <Link to="/browse">
-                  Browse Listings <ArrowRight className="h-5 w-5" />
+                  Browse Listings <ArrowRight className="h-5 w-5 ml-2" />
                 </Link>
               </Button>
-              <Button asChild variant="hero-outline" size="xl">
+              <Button asChild variant="outline" size="xl" className="bg-transparent border-2 border-white/30 text-white hover:bg-white/10 min-w-[200px]">
                 <Link to="/sell">
                   Sell an Item
                 </Link>

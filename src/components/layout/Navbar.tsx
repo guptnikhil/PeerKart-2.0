@@ -79,33 +79,33 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 shrink-0">
           <img src={logo} alt="PeerKart" className="h-10 w-10 rounded-lg object-cover" />
           <span className="font-display text-xl font-bold text-foreground">
             Peer<span className="text-pk-green">Kart</span>
           </span>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => (
-            <Button
-              key={link.path}
-              asChild
-              variant={location.pathname === link.path ? "default" : "ghost"}
-              size="sm"
-            >
-              <Link to={link.path}>
-                {link.label}
-              </Link>
-            </Button>
-          ))}
-        </div>
+        <div className="hidden items-center gap-4 md:flex">
+          {/* Desktop nav links */}
+          <div className="flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Button
+                key={link.path}
+                asChild
+                variant={location.pathname === link.path ? "default" : "ghost"}
+                size="sm"
+              >
+                <Link to={link.path}>
+                  {link.label}
+                </Link>
+              </Button>
+            ))}
+          </div>
 
-        <div className="hidden items-center gap-2 md:flex">
           {user ? (
-            <>
-              <Button asChild variant="ghost" size="icon" className="relative mr-1" onClick={() => navigate("/messages")}>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="icon" className="relative" onClick={() => navigate("/messages")}>
                 <Link to="/messages">
                   <Bell className="h-5 w-5 text-muted-foreground" />
                   {unreadCount > 0 && (
@@ -122,25 +122,25 @@ export function Navbar() {
                     ) : (
                       <UserCircle className="h-5 w-5" />
                     )}
-                    <span className="max-w-[120px] truncate">
+                    <span className="max-w-[120px] truncate uppercase font-bold text-[13px] tracking-wide">
                       {profile?.full_name || user.email}
                     </span>
                   </div>
                 </Link>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="font-bold">
                 Log out
               </Button>
-            </>
+            </div>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Button asChild variant="ghost" size="sm">
                 <Link to="/login">Log in</Link>
               </Button>
               <Button asChild variant="hero" size="sm">
                 <Link to="/register">Sign up</Link>
               </Button>
-            </>
+            </div>
           )}
         </div>
 
