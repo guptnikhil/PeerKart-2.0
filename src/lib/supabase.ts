@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = "https://zngduahebpsxqvaxdkzj.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ2R1YWhlYnBzeHF2YXhka3pqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjI3OTc5MCwiZXhwIjoyMDg3ODU1NzkwfQ.auN-fZ0N7pEC7Dy40S0nUxh2mSnNsUlb8MvKIRDx_YU";
+const supabaseUrl = "https://white-block-25e5.guptnikhil996.workers.dev"; // Cloudflare proxy → bypasses ISP block
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ2R1YWhlYnBzeHF2YXhka3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzk3OTAsImV4cCI6MjA4Nzg1NTc5MH0.L1PTfn7rd67zwOCMOcNZjf8RFbygObwddrwEgrQaGag";
+
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
