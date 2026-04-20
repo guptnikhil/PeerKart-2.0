@@ -9,7 +9,6 @@ export function ListingDetailSkeleton() {
       <div className="container mx-auto px-4 py-8">
         <Skeleton className="h-4 w-32 mb-6" />
         <div className="mt-4 grid gap-8 lg:grid-cols-2">
-          {/* Image Skeleton */}
           <div className="space-y-4">
             <Skeleton className="aspect-square w-full rounded-xl" />
             <div className="flex gap-2">
@@ -18,7 +17,6 @@ export function ListingDetailSkeleton() {
               <Skeleton className="h-16 w-16 rounded-md" />
             </div>
           </div>
-          {/* Details Skeleton */}
           <div className="space-y-6">
             <div className="space-y-2">
               <div className="flex gap-2">
@@ -37,7 +35,6 @@ export function ListingDetailSkeleton() {
               <Skeleton className="h-5 w-1/3" />
               <Skeleton className="h-4 w-1/4" />
             </div>
-            {/* Seller Card Skeleton */}
             <div className="rounded-xl border border-border p-4 space-y-4">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-12 w-12 rounded-full" />
