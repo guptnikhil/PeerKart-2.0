@@ -1,10 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-const isProd = import.meta.env.PROD;
-const supabaseUrl = isProd 
-  ? `${window.location.origin}/supabase` 
-  : import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = "https://zngduahebpsxqvaxdkzj.supabase.co"; // Direct Supabase connection
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ2R1YWhlYnBzeHF2YXhka3pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNzk3OTAsImV4cCI6MjA4Nzg1NTc5MH0.L1PTfn7rd67zwOCMOcNZjf8RFbygObwddrwEgrQaGag";
 
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -16,14 +13,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     fetch: async (url, options) => {
-      const MAX_RETRIES = 2;
+      const MAX_RETRIES = 3;
       for (let i = 0; i < MAX_RETRIES; i++) {
         try {
           return await fetch(url, options);
         } catch (err) {
           if (i === MAX_RETRIES - 1) throw err;
           console.warn(`Supabase fetch failed, retrying... (${i + 1})`);
-          await new Promise(r => setTimeout(r, 500 * (i + 1))); // Snappier backoff
+          await new Promise(r => setTimeout(r, 1000 * (i + 1))); // Exponential backoff
         }
       }
       return fetch(url, options);

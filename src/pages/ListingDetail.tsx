@@ -20,20 +20,27 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 
-import { useQuery } from "@tanstack/react-query";
-import { ListingDetailSkeleton } from "@/components/listings/ListingDetailSkeleton";
-
 const ListingDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const [listing, setListing] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
 
-  const { data: listing, isLoading: loading, error } = useQuery({
-    queryKey: ["listing", id],
-    queryFn: async () => {
+  useEffect(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap());
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  useEffect(() => {
+    const fetchListing = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from("items")
         .select(`
@@ -49,23 +56,29 @@ const ListingDetail = () => {
         .eq("id", id)
         .single();
 
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!id,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
+      if (error) {
+        console.error("Error fetching listing:", error);
+      } else {
+        setListing(data);
+      }
+      setLoading(false);
+    };
 
-  useEffect(() => {
-    if (!api) return;
-    setCurrent(api.selectedScrollSnap());
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-  }, [api]);
+    if (id) {
+      fetchListing();
+    }
+  }, [id]);
 
   if (loading) {
-    return <ListingDetailSkeleton />;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <p className="text-muted-foreground animate-pulse">Fetching item details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   if (!listing) {

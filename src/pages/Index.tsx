@@ -31,35 +31,44 @@ const features = [
   },
 ];
 
-import { useQuery } from "@tanstack/react-query";
-import { ListingSkeleton } from "@/components/listings/ListingSkeleton";
-
 const Index = () => {
   const navigate = useNavigate();
+  const [recentListings, setRecentListings] = useState([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+  const [errorInfo, setErrorInfo] = useState<string | null>(null);
 
-  const { data: recentListings = [], isLoading: loadingRecent, error: queryError } = useQuery({
-    queryKey: ["recent-listings"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("items")
-        .select(`
-          *,
-          profiles (
-            full_name,
-            college_name
-          )
-        `)
-        .order("created_at", { ascending: false })
-        .limit(3);
+  useEffect(() => {
+    fetchRecentListings();
+  }, []);
 
-      if (error) throw error;
-      return data || [];
-    },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-  });
+  const fetchRecentListings = async () => {
+    setLoadingRecent(true);
+    setErrorInfo(null);
+    const { data, error } = await supabase
+      .from("items")
+      .select(`
+        *,
+        profiles (
+          full_name,
+          college_name
+        )
+      `)
+      .order("created_at", { ascending: false })
+      .limit(3);
 
-  const errorInfo = queryError ? (queryError as any).message : null;
-  const isTableMissing = queryError && (queryError as any).code === '42P01';
+    if (error) {
+      console.error("Error fetching recent listings:", error);
+      if (error.code === '42P01') {
+        setErrorInfo("DATABASE_MISSING_TABLES");
+      } else {
+        setErrorInfo(error.message);
+      }
+    } else {
+      console.log("Fetched items successfully:", data); // DEBUG LOG
+      setRecentListings(data || []);
+    }
+    setLoadingRecent(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -152,7 +161,7 @@ const Index = () => {
               View all <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
-          {isTableMissing ? (
+          {errorInfo === "DATABASE_MISSING_TABLES" ? (
             <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-12 text-center mt-8">
               <h3 className="font-display text-xl font-bold text-destructive">Database Schema Missing!</h3>
               <p className="mt-2 text-muted-foreground">
@@ -165,10 +174,8 @@ const Index = () => {
               <p className="mt-2 text-muted-foreground">{errorInfo}</p>
             </div>
           ) : loadingRecent ? (
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <ListingSkeleton key={i} />
-              ))}
+            <div className="py-20 text-center">
+              <p className="text-lg text-muted-foreground animate-pulse">Loading recent listings...</p>
             </div>
           ) : recentListings.length > 0 ? (
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
