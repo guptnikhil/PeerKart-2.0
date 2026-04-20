@@ -139,7 +139,7 @@ const SellItem = () => {
           image_urls: imageUrls,    // Support multiple images
           age: age,
           user_id: user?.id,
-          status: 'approved',
+          status: 'pending', // Requires admin approval
         },
       ]);
 

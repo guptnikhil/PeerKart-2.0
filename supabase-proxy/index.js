@@ -11,7 +11,7 @@ const { createProxyMiddleware, responseInterceptor } = require('http-proxy-middl
 const PORT            = process.env.PORT            || 3000;
 const SUPABASE_URL    = process.env.SUPABASE_URL;    // e.g. https://abcxyz.supabase.co
 const PROXY_URL       = process.env.PROXY_URL;       // e.g. https://my-proxy-abc123-xx.a.run.app
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN; // e.g. https://www.peerkart.com  (or * for testing)
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://peerkart.vercel.app'; // Default to your production URL
 const SUPABASE_ANON_KEY     = process.env.SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_KEY  = process.env.SUPABASE_SERVICE_KEY; // optional, for server-side usage
 
@@ -133,7 +133,8 @@ const proxyMiddleware = createProxyMiddleware({
 
     error(err, _req, res) {
       console.error('Proxy error:', err.message);
-      res.status(502).json({ error: 'Bad Gateway', detail: err.message });
+      // Don't expose internal details to the user
+      res.status(502).json({ error: 'Gateway Error', detail: 'The server encountered an issue connecting to the database.' });
     },
   },
 });
