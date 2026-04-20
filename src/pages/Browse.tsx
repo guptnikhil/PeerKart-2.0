@@ -10,64 +10,45 @@ import { supabase } from "@/lib/supabase";
 
 const categories: (ListingCategory | "all")[] = ["all", "textbooks", "electronics", "furniture", "clothing", "stationery", "sports", "other"];
 
+import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@/hooks/use-debounce";
+import { ListingSkeleton } from "@/components/listings/ListingSkeleton";
+
 const Browse = () => {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
   const [selectedCategory, setSelectedCategory] = useState<ListingCategory | "all">("all");
-  const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  const [errorInfo, setErrorInfo] = useState<string | null>(null);
+  const { data: listings = [], isLoading, error: queryError } = useQuery({
+    queryKey: ["listings", selectedCategory, debouncedSearch],
+    queryFn: async () => {
+      let query = supabase
+        .from("items")
+        .select(`
+          *,
+          profiles (
+            full_name,
+            college_name
+          )
+        `);
 
-  useEffect(() => {
-    fetchListings();
-  }, []);
-
-  const fetchListings = async () => {
-    setLoading(true);
-    setErrorInfo(null);
-    const { data, error } = await supabase
-      .from("items")
-      .select(`
-        *,
-        profiles (
-          full_name,
-          college_name
-        )
-      `); // Temporarily removed status filter to see if any items exist
-
-    if (error) {
-      console.error("Error fetching listings:", error);
-      if (error.code === '42P01') {
-        setErrorInfo("DATABASE_MISSING_TABLES");
-      } else {
-        setErrorInfo(error.message);
+      if (selectedCategory !== "all") {
+        query = query.eq("category", selectedCategory);
       }
-    } else {
-      setListings(data || []);
-    }
-    setLoading(false);
-  };
 
-  const filtered = listings.filter((l: any) => {
-    const title = l.title || "";
-    const description = l.description || "";
-    const matchesSearch = title.toLowerCase().includes(search.toLowerCase()) || description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || l.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+      if (debouncedSearch) {
+        query = query.ilike("title", `%${debouncedSearch}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8 text-center">
-          <h1 className="font-display text-3xl font-bold text-foreground md:text-4xl">Browse Listings</h1>
-          <p className="mt-2 text-muted-foreground">Loading listings...</p>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  const errorInfo = queryError ? (queryError as any).message : null;
+  const isTableMissing = queryError && (queryError as any).code === '42P01';
 
   return (
     <div className="min-h-screen bg-background">
@@ -107,7 +88,7 @@ const Browse = () => {
         </div>
 
         {/* Results */}
-        {errorInfo === "DATABASE_MISSING_TABLES" ? (
+        {isTableMissing ? (
           <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-12 text-center mt-8">
             <h3 className="font-display text-xl font-bold text-destructive">Database Schema Missing!</h3>
             <p className="mt-2 text-muted-foreground">
@@ -119,9 +100,15 @@ const Browse = () => {
             <h3 className="font-display text-xl font-bold text-yellow-600">Connection Issue</h3>
             <p className="mt-2 text-muted-foreground">{errorInfo}</p>
           </div>
-        ) : filtered.length > 0 ? (
+        ) : isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((listing) => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <ListingSkeleton key={i} />
+            ))}
+          </div>
+        ) : listings.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.map((listing) => (
               <ListingCard key={listing.id} listing={listing} />
             ))}
           </div>
